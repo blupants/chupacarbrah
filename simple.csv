@@ -1,0 +1,5 @@
+Enabled,Mode (hex),PID (hex),Data bytes returned,Description,Min value,Max value,Units,Formula,,,,,,,,,,,,,,,,,,,,,
+1,1,5,1,Engine coolant temperature,-40,215,°C,A-40,,,,,,,,,,,,,,,,,,,,,
+1,1,0C,2,Engine RPM,0,16383.75,rpm,((A*256)+B)/4,,,,,,,,,,,,,,,,,,,,,
+1,1,0D,1,Vehicle speed,0,255,km/h,A,,,,,,,,,,,,,,,,,,,,,
+1,1,0F,1,Intake air temperature,-40,215,°C,A-40,,,,,,,,,,,,,,,,,,,,,
