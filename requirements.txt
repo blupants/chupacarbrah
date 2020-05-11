@@ -1,0 +1,5 @@
+requests
+pyserial
+python-can
+psutil
+hologram-python
