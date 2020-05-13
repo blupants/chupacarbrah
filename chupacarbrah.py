@@ -14,7 +14,7 @@ from Hologram.CustomCloud import CustomCloud
 
 global server_url
 # provide the URL for your ChupaCarBrah server (See https://github.com/blupants/chupacarbrah_server)
-server_url = "http://192.168.0.1"
+server_url = "http://chupacarbrah-env.eba-bdahj3wp.us-east-2.elasticbeanstalk.com/"
 
 global obd2_csv_file
 #obd2_csv_file = "obd2_std_PIDs_enabled.csv"
