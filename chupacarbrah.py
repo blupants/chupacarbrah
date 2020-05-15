@@ -231,7 +231,7 @@ def run():
                         try:
                             bus.send(msg)
                             time.sleep(0.5)
-                            for i in range(1, 5):
+                            for i in range(0, 2):
                                 time.sleep(0.5)
                                 response = bus.recv(timeout=2)
                                 if not response:
