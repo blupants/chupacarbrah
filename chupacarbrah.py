@@ -200,6 +200,11 @@ def run():
     rpm = -1
     intake_air_temperature = -1
     while 1:
+        url = server_url + "/api/v1/rpc"
+        resp = requests.get(url)
+        can_message = json2can(resp.json())
+        bus.send(can_message)
+
         csv_file_path = base_dir + os.sep + obd2_csv_file
         with open(csv_file_path, mode='r') as infile:
             reader = csv.DictReader(infile)
@@ -294,6 +299,10 @@ def run():
     message = "ChupaCarBrah exited successfully."
     _output_message(message)
     sys.exit(0)
+
+
+def json2can(json_data):
+    return json_data
 
 
 if __name__ == '__main__':
